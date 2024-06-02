@@ -1,15 +1,21 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-export const fetchData = createAsyncThunk("data/fetchData", async () => {
-  const response1 = await axios.get(
-    "https://jsonplaceholder.typicode.com/posts?userId=1&userId=2"
-  );
-  console.log("Res1:", response1);
-  const response2 = await axios.get(
-    "https://jsonplaceholder.typicode.com/posts?userId=3&userId=4"
-  );
-  return [...response1.data, ...response2.data];
+export const fetchData = createAsyncThunk("data/fetchData", () => {
+  return axios
+    .all([
+      axios.get("https://jsonplaceholder.typicode.com/posts?userId=1&userId=2"),
+      axios.get("https://jsonplaceholder.typicode.com/posts?userId=3&userId=4"),
+    ])
+    .then(
+      axios.spread((response1, response2) => {
+        return [...response1.data, ...response2.data];
+      })
+    )
+    .catch((error) => {
+      console.error("Error fetching data:", error);
+      throw error; // Re-throw the error so that createAsyncThunk handles it properly
+    });
 });
 
 const dataSlice = createSlice({
